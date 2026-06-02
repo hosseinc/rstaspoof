@@ -1,0 +1,40 @@
+name: Build rstaspoof for Mac
+
+on:
+  workflow_dispatch:
+    inputs:
+      architecture:
+        description: 'Your Mac architecture'
+        required: true
+        default: 'arm64'
+        type: choice
+        options:
+          - 'arm64 (Apple Silicon M1/M2/M3)'
+          - 'amd64 (Intel Mac)'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+      
+      - name: Build binary
+        run: |
+          if [ "${{ github.event.inputs.architecture }}" = "arm64 (Apple Silicon M1/M2/M3)" ]; then
+            GOOS=darwin GOARCH=arm64 go build -o rstaspoof rstaspoof.go
+          else
+            GOOS=darwin GOARCH=amd64 go build -o rstaspoof rstaspoof.go
+          fi
+      
+      - name: Upload binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: rstaspoof-mac-binary
+          path: rstaspoof
